@@ -1,0 +1,84 @@
+---
+title: "Initiate Call"
+description: "Create an outbound call between a user and your bot and receive a callId for subsequent operations."
+---
+
+Initiate an outbound call by POSTing user and bot phone numbers plus callback endpoints for events and media streaming.
+
+## Endpoint
+
+```
+POST <Snippet name="dialer-base-url" />/initiateCall
+Content-Type: application/json
+```
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| userPhoneNumber | string | Yes | User's E.164 (or local) phone number being called (digits only). |
+| botPhoneNumber | string | Yes | Bot / agent phone number initiating call. |
+| websocketUrlForMediaStream | string | Yes | WebSocket URL your AI service exposes for media exchange (dialer will connect). |
+| webhookUrlForCallEvents | string | Yes | HTTPS URL to receive call lifecycle webhooks. |
+
+```json
+{
+  "userPhoneNumber": "9170045*****",
+  "botPhoneNumber": "9180714*****",
+  "websocketUrlForMediaStream": "wss://echo.websocket.org",
+  "webhookUrlForCallEvents": "https://webhook.site/8463..."
+}
+```
+
+## Example cURL
+
+```bash
+curl --location '<Snippet name="dialer-base-url" />/initiateCall' \
+--header 'Content-Type: application/json' \
+--data '{
+  "userPhoneNumber": "9170045*****",
+  "botPhoneNumber": "9180714*****",
+  "websocketUrlForMediaStream": "wss://echo.websocket.org",
+  "webhookUrlForCallEvents": "https://webhook.site/8463144e-3dcf-48c7-84f0-42c0ae19408d"
+}'
+```
+
+## Success Response
+
+```json
+{
+  "status": 200,
+  "success": true,
+  "data": { "callId": "c7a791de-450f-403b-9ee9-78dddb1f45eb" },
+  "message": "Call Initiated"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| status | number | HTTP-like status code. |
+| success | boolean | Indicates request outcome. |
+| data.callId | string | Unique call identifier (UUID). |
+| message | string | Human readable status. |
+
+## Failure Response (Generic)
+
+```json
+{
+  "status": 500,
+  "success": false,
+  "data": {},
+  "message": "Something went wrong!"
+}
+```
+
+<Note>
+Handle transient errors with retry + idempotency safeguards (e.g., dedupe on a client-generated UUID in future enhancements).
+</Note>
+
+## Webhooks After Initiation
+A successful initiation typically triggers a `CALL_START` webhook within seconds. See <Link href="/dialer/webhooks">Webhooks</Link>.
+
+## Related
+- <Link href="/dialer/api/hangup">Hangup API</Link>
+- <Link href="/dialer/webhooks">Webhook payloads</Link>

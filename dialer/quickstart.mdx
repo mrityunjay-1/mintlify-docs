@@ -1,0 +1,194 @@
+---
+title: "Dialer Quickstart"
+description: "Spin up your first outbound call with Oriserve Dialer in under 5 minutes."
+---
+
+This guide shows the minimum steps to place a call, receive lifecycle events, and stream audio.
+
+## Prerequisites
+
+<Checklist>
+  <Check>You have network access to <Snippet name="dialer-base-url" />.</Check>
+  <Check>An HTTPS webhook endpoint publicly reachable (e.g., using a tunnel like ngrok during development).</Check>
+  <Check>An AI media WebSocket endpoint able to accept 8 kHz mulaw frames, or a simple echo server for testing.</Check>
+  <Check>cURL installed locally.</Check>
+</Checklist>
+
+## 1. Prepare a Webhook Receiver (Example Node.js)
+
+```bash
+mkdir dialer-webhook && cd dialer-webhook && npm init -y && npm i express body-parser
+```
+```js
+// server.js
+import express from 'express';
+import bodyParser from 'body-parser';
+const app = express();
+app.use(bodyParser.json());
+
+app.post('/dialer-webhook', (req, res) => {
+  console.log('Dialer Event:', req.body);
+  res.status(200).send('ok');
+});
+
+app.listen(3001, () => console.log('Webhook listening on :3001'));
+```
+
+Expose it (optional) with ngrok:
+```bash
+ngrok http 3001
+```
+Copy the https forwarding URL (e.g. `https://abcd1234.ngrok.io/dialer-webhook`).
+
+## 2. Initiate a Call
+
+```bash
+curl --location '<Snippet name="dialer-base-url" />/initiateCall' \
+--header 'Content-Type: application/json' \
+--data '{
+  "userPhoneNumber": "9170045*****",
+  "botPhoneNumber": "9180714*****",
+  "websocketUrlForMediaStream": "wss://echo.websocket.org",
+  "webhookUrlForCallEvents": "https://your-public-host/dialer-webhook"
+}'
+```
+
+Typical success response:
+```json
+{
+  "status": 200,
+  "success": true,
+  "data": { "callId": "c7a791de-450f-403b-9ee9-78dddb1f45eb" },
+  "message": "Call Initiated"
+}
+```
+Store the `callId`.
+
+## 3. Observe Webhooks
+You should receive a `CALL_START` event shortly. Log output might resemble:
+```json
+{
+  "eventName": "CALL_START",
+  "callId": "...",
+  "userPhoneNumber": "9170045*****",
+  "botPhoneNumber": "9180714*****",
+  "callStartTime": "2025-10-11T16:42:14.136Z",
+  "callingDirection": "OUTBOUND"
+}
+```
+
+## 4. Handle / Produce Media
+When the dialer connects to your AI WebSocket endpoint you'll first get a `start` event, followed by `media` frames. See <Link href="/dialer/media-streaming">Media Streaming</Link> for details.
+
+### (Optional) Build a Raw WebSocket Media Server (Node.js)
+
+Below is a minimal raw WebSocket implementation (no socket.io) using the popular `ws` library. It logs inbound `start` / `media` events and echoes audio back (loopback) for testing.
+
+```bash
+npm init -y
+npm i ws
+```
+
+```js
+// media-server.js
+import { WebSocketServer } from 'ws';
+
+// 0) Utility: (placeholder) convert mulaw -> mulaw (identity here). In real life you may decode/process.
+function processInboundMuLawBase64(b64) {
+  return b64; // loopback unchanged
+}
+
+// 1) Start server
+const wss = new WebSocketServer({ port: 3080 });
+console.log('Raw media WebSocket listening ws://localhost:3080');
+
+wss.on('connection', (ws, req) => {
+  console.log('Client connected:', req.socket.remoteAddress);
+  let callId = null;
+  let streamId = null;
+
+  ws.on('message', (data) => {
+    let msg; try { msg = JSON.parse(data.toString()); } catch (e) { return console.warn('Non-JSON frame'); }
+
+    if (msg.event === 'start') {
+      streamId = msg.start?.streamId;
+      callId = msg.start?.callId;
+      console.log('[start]', { callId, streamId });
+      return; // nothing else to do yet
+    }
+
+    if (msg.event === 'media') {
+      const payload = msg.media?.payload;
+      if (!payload) return;
+      // TODO: decode mulaw -> PCM if you want to run ASR / NLU.
+      const processed = processInboundMuLawBase64(payload);
+      // Echo back (sends audio to the user):
+      ws.send(JSON.stringify({ event: 'media', media: { payload: processed } }));
+      return;
+    }
+
+    if (msg.event === 'clearAudio') {
+      console.log('[clearAudio ack]');
+      return;
+    }
+
+    console.log('Unhandled event', msg.event);
+  });
+
+  ws.on('close', () => console.log('Connection closed', { callId, streamId }));
+});
+```
+
+Run it:
+```bash
+node media-server.js
+```
+
+Expose with ngrok (for the dialer to reach it):
+```bash
+ngrok http 3080 --host-header=rewrite
+```
+
+Use the resulting wss URL (convert https forwarding domain to `wss://`) as your `websocketUrlForMediaStream` in the Initiate Call request.
+
+<Tip>
+If ngrok gives `https://abcd.ngrok.io`, the WebSocket secure URL is `wss://abcd.ngrok.io` (the `ws` upgrade occurs automatically).
+</Tip>
+
+#### Sending Outbound Audio Frames
+To play synthesized audio to the user, convert PCM 8kHz mono -> mulaw -> base64 and send:
+```js
+ws.send(JSON.stringify({
+  event: 'media',
+  media: { payload: base64Mulaw }
+}));
+```
+
+#### Interrupting Playback
+Send:
+```js
+ws.send(JSON.stringify({ event: 'clearAudio' }));
+```
+
+<Note>
+Avoid huge payloads: keep each frame representing ~20–60ms audio to balance latency vs overhead.
+</Note>
+
+## 5. Hang Up (Optional Test)
+```bash
+curl --location '<Snippet name="dialer-base-url" />/hangup' \
+--header 'Content-Type: application/json' \
+--data '{
+  "callId": "YOUR_CALL_ID",
+  "reason": "testing"
+}'
+```
+
+You will then receive a `CALL_TERMINATE` webhook containing duration and recording URL (if available).
+
+<Note>
+Remember: audio encoding is 8 kHz mulaw. Resample higher sample-rate audio before sending.
+</Note>
+
+## Next
+Dive deeper into the <Link href="/dialer/api/initiate-call">Initiate Call endpoint</Link> or explore the <Link href="/dialer/events">Events reference</Link>.

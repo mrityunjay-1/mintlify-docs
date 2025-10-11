@@ -1,0 +1,112 @@
+---
+title: "Events Reference"
+description: "Canonical structures for webhook and media events."
+---
+
+This reference lists every event payload the integration currently emits or expects.
+
+## Webhook Events
+
+### CALL_START
+| Field | Type | Description |
+|-------|------|-------------|
+| eventName | string | `CALL_START` |
+| callId | string | Unique call identifier. |
+| userPhoneNumber | string | User's number. |
+| botPhoneNumber | string | Bot's number. |
+| callStartTime | string (ISO 8601) | Timestamp when call audio started. |
+| callingDirection | string | `OUTBOUND` |
+
+```json
+{
+  "eventName": "CALL_START",
+  "callId": "51e7075a-c284-4b9d-867e-fe131e6a9e05",
+  "userPhoneNumber": "9170045*****",
+  "botPhoneNumber": "9180714*****",
+  "callStartTime": "2025-10-11T16:42:14.136Z",
+  "callingDirection": "OUTBOUND"
+}
+```
+
+### CALL_TERMINATE
+| Field | Type | Description |
+|-------|------|-------------|
+| eventName | string | `CALL_TERMINATE` |
+| callId | string | Unique call identifier. |
+| callRingingTime | string (ISO 8601) | Timestamp when the call first rang. |
+| callStartTime | string (ISO 8601) | Timestamp when call established. |
+| callEndTime | string (ISO 8601) | Timestamp when call ended. |
+| userPhoneNumber | string | User's number. |
+| hangupCause | string | `user` or `bot-hangup`. |
+| hangupDescription | string | Optional description / reason. |
+| callDuration | number (s) | Duration between start & end. |
+| callRingingDuration | number (s) | Time from ringing to answer. |
+| callStatus | string | e.g. `COMPLETED`. |
+| callingDirection | string | `OUTBOUND`. |
+| recordingURL | string | (If available) pointer to call recording. |
+
+```json
+{
+  "eventName": "CALL_TERMINATE",
+  "callId": "0ace1980-6eb5-49c2-b3bd-361a2e01e202",
+  "callRingingTime": "2025-10-11T16:33:30.401Z",
+  "callStartTime": "2025-10-11T16:33:36.543Z",
+  "callEndTime": "2025-10-11T16:33:43.172Z",
+  "userPhoneNumber": "9170045*****",
+  "hangupCause": "bot-hangup",
+  "hangupDescription": "",
+  "callDuration": 7,
+  "callRingingDuration": 6.14,
+  "callStatus": "COMPLETED",
+  "callingDirection": "OUTBOUND",
+  "recordingURL": "https://some_url/call_recordings/4e9c-8af3-d540b1c65b47.wav"
+}
+```
+
+## Media WebSocket Events
+
+### start
+| Path | Type | Description |
+|------|------|-------------|
+| event | string | `start` |
+| start.streamId | string | Stream identifier. |
+| start.callId | string | Correlates with call & webhooks. |
+
+### media (Inbound)
+| Path | Type | Description |
+|------|------|-------------|
+| event | string | `media` |
+| media.payload | string | Base64 mulaw audio frame. |
+| media.streamId | string | Stream identifier. |
+| media.callId | string | Call identifier. |
+| media.timestamp | number (ms) | Epoch milliseconds. |
+
+### media (Outbound)
+| Path | Type | Description |
+|------|------|-------------|
+| event | string | `media` |
+| media.payload | string | Base64 mulaw audio frame. |
+
+### clearAudio (Outbound)
+| Path | Type | Description |
+|------|------|-------------|
+| event | string | `clearAudio` |
+
+```json
+{ "event": "clearAudio" }
+```
+
+## Future Extensions
+Potential future events (not yet implemented):
+- `CALL_RINGING`
+- `CALL_FAILED`
+- `PARTIAL_TRANSCRIPT`
+- `FINAL_TRANSCRIPT`
+
+<Note>
+Consume unknown events defensively: log & ignore.
+</Note>
+
+## Related
+- <Link href="/dialer/media-streaming">Media Streaming</Link>
+- <Link href="/dialer/webhooks">Webhooks</Link>

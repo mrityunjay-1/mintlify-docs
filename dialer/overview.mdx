@@ -1,0 +1,60 @@
+---
+title: "Dialer Overview"
+description: "Learn how to integrate with the Oriserve Dialer to initiate, control, and monitor voice calls in real-time."
+---
+
+Welcome to the Oriserve Dialer integration docs. These pages walk you through initiating outbound calls, receiving webhook events, streaming audio (bi‑directionally) over WebSockets, and gracefully terminating calls.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/dialer/quickstart">
+    Get up and running in minutes with a sample flow.
+  </Card>
+  <Card title="Initiate a Call" icon="phone" href="/dialer/api/initiate-call">
+    Create an outbound call and obtain a `callId`.
+  </Card>
+  <Card title="Hang Up" icon="phone-xmark" href="/dialer/api/hangup">
+    Programmatically terminate an in‑progress call.
+  </Card>
+  <Card title="Webhooks" icon="bolt" href="/dialer/webhooks">
+    Subscribe to call lifecycle events.
+  </Card>
+  <Card title="Media Streaming" icon="waveform-lines" href="/dialer/media-streaming">
+    Send and receive real-time audio packets.
+  </Card>
+  <Card title="Events Reference" icon="list" href="/dialer/events">
+    Detailed payloads for every event type.
+  </Card>
+</CardGroup>
+
+## Base URL
+
+<Snippet name="dialer-base-url" />
+
+All requests use JSON over HTTPS. Ensure your system's clock is synchronized (e.g., via NTP) to avoid time-based discrepancies when correlating events.
+
+## High-Level Flow
+
+<Steps>
+  <Step title="Initiate call">POST to the Initiate Call endpoint providing user and bot phone numbers plus webhook & media stream URLs.</Step>
+  <Step title="Receive webhooks">Your webhook endpoint is invoked for lifecycle events (start, terminate, etc.).</Step>
+  <Step title="Establish media WebSocket">Dialer connects to your AI service (and vice versa) to exchange 8kHz mulaw audio frames.</Step>
+  <Step title="Real-time interaction">Your AI processes inbound audio frames, generates responses, and can interrupt via `clearAudio`.</Step>
+  <Step title="Terminate">Either party can hang up via the Hangup API or normal call flow.</Step>
+</Steps>
+
+## Key Concepts
+
+| Concept | Description |
+|--------|-------------|
+| callId | UUID used to correlate API responses, media frames, and webhook events. |
+| Webhook | HTTP POST callback for asynchronous call lifecycle events. |
+| Media Stream | Bi-directional WebSocket channel carrying base64-encoded 8 kHz mulaw audio. |
+| clearAudio | Control event from AI service to request dialer to immediately stop current outbound audio playback. |
+
+<Note>
+This documentation set currently covers outbound calls (callingDirection = `OUTBOUND`).
+</Note>
+
+## Next Steps
+
+Jump to the <Link href="/dialer/quickstart">Quickstart</Link> or dive straight into the <Link href="/dialer/api/initiate-call">Initiate Call API</Link>.

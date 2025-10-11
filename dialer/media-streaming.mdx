@@ -1,0 +1,94 @@
+---
+title: "Media Streaming"
+description: "Bidirectional real-time audio over WebSockets between the dialer and your AI service."
+---
+
+The dialer opens a WebSocket to your `websocketUrlForMediaStream` after call initiation. Your AI service should also (optionally) maintain a separate outbound connection for sending audio—if using a single shared connection, follow negotiated protocol.
+
+<Alert type="warning" icon="waveform-lines">
+Audio encoding MUST be 8,000 Hz (8 kHz) mulaw. Resample and encode before sending.
+</Alert>
+
+## Inbound (Dialer -> AI) Event Types
+| Event | Description |
+|-------|-------------|
+| start | First frame with identifiers (`streamId`, `callId`). |
+| media | Continuous audio frames (base64 mulaw). |
+
+### start Event
+```json
+{
+  "event": "start",
+  "start": {
+    "streamId": "dummy-value",
+    "callId": "dummy-value"
+  }
+}
+```
+
+### media Event (Inbound)
+```json
+{
+  "event": "media",
+  "media": {
+    "payload": "base64encoded_audio_data",
+    "streamId": "dummy-value",
+    "callId": "dummy-value",
+    "timestamp": 1733960534136
+  }
+}
+```
+
+## Outbound (AI -> Dialer) Event Types
+| Event | Description |
+|-------|-------------|
+| media | Audio your AI wants played to the user. |
+| clearAudio | Interrupt current playback (barge-in). |
+
+### media Event (Outbound)
+```json
+{
+  "event": "media",
+  "media": {
+    "payload": "base64encoded_audio_data"
+  }
+}
+```
+
+### clearAudio Event
+```json
+{ "event": "clearAudio" }
+```
+
+## Timing & Latency
+Keep outbound frame sizes small (e.g., 20ms – 60ms of audio) to minimize latency while avoiding overhead of extremely tiny packets.
+
+## Base64 Payload Construction (mulaw)
+1. Capture / generate PCM audio at 8 kHz mono 16-bit.
+2. Convert PCM -> mulaw.
+3. Base64 encode the raw mulaw bytes.
+4. Send in `media.payload`.
+
+## Example Pseudocode (Node.js Encoding)
+```js
+// pseudo-code (mulaw conversion omitted for brevity)
+function sendPcmChunk(ws, pcmBuffer) {
+  const mulawBytes = linearPcm16ToMuLaw(pcmBuffer); // implement or use a lib
+  const b64 = Buffer.from(mulawBytes).toString('base64');
+  ws.send(JSON.stringify({ event: 'media', media: { payload: b64 } }));
+}
+```
+
+## Interruption Strategy
+Send `clearAudio` immediately before a corrective or higher‑priority response to cut off currently playing audio and reduce user wait time.
+
+## Error Handling
+<Checklist>
+  <Check>Reconnect with exponential backoff if the WebSocket closes unexpectedly.</Check>
+  <Check>Validate JSON schema before processing frames.</Check>
+  <Check>Ignore (log) unknown event types to remain forward compatible.</Check>
+</Checklist>
+
+## Related
+- <Link href="/dialer/events">Events Reference</Link>
+- <Link href="/dialer/webhooks">Webhooks</Link>

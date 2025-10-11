@@ -1,0 +1,65 @@
+---
+title: "Webhooks"
+description: "Receive asynchronous call lifecycle events for monitoring and analytics."
+---
+
+Provide a publicly reachable HTTPS endpoint in `webhookUrlForCallEvents` when initiating a call. The dialer POSTs JSON payloads.
+
+<Alert type="info" icon="bolt">
+Respond with HTTP 200 quickly (within 2–3s). Perform heavy processing asynchronously.
+</Alert>
+
+## Security
+Recommend validating the source IP / adding an HMAC signature layer (future enhancement). For now, treat payloads as untrusted input.
+
+## Events Covered
+- `CALL_START`
+- `CALL_TERMINATE`
+
+See the full structures in <Link href="/dialer/events">Events Reference</Link>.
+
+## CALL_START Example
+```json
+{
+  "eventName": "CALL_START",
+  "callId": "51e7075a-c284-4b9d-867e-fe131e6a9e05",
+  "userPhoneNumber": "9170045*****",
+  "botPhoneNumber": "9180714*****",
+  "callStartTime": "2025-10-11T16:42:14.136Z",
+  "callingDirection": "OUTBOUND"
+}
+```
+
+## CALL_TERMINATE Example
+```json
+{
+  "eventName": "CALL_TERMINATE",
+  "callId": "0ace1980-6eb5-49c2-b3bd-361a2e01e202",
+  "callRingingTime": "2025-10-11T16:33:30.401Z",
+  "callStartTime": "2025-10-11T16:33:36.543Z",
+  "callEndTime": "2025-10-11T16:33:43.172Z",
+  "userPhoneNumber": "9170045*****",
+  "hangupCause": "bot-hangup",
+  "hangupDescription": "",
+  "callDuration": 7,
+  "callRingingDuration": 6.14,
+  "callStatus": "COMPLETED",
+  "callingDirection": "OUTBOUND",
+  "recordingURL": "https://some_url/call_recordings/4e9c-8af3-d540b1c65b47.wav"
+}
+```
+
+## Handling Recommendations
+<Checklist>
+  <Check>Use the `callId` as primary key in your DB.</Check>
+  <Check>Store raw payload JSON for auditing.</Check>
+  <Check>Track durations & outcomes (`hangupCause`, `callStatus`) for KPIs.</Check>
+  <Check>Verify timestamps are in ISO 8601 UTC format before parsing.</Check>
+</Checklist>
+
+## Retries
+(If implemented) the dialer may retry on non-200 responses. Ensure idempotency by upserting on `callId`.
+
+## Related
+- <Link href="/dialer/api/initiate-call">Initiate Call</Link>
+- <Link href="/dialer/events">Events Reference</Link>

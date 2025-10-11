@@ -1,0 +1,62 @@
+---
+title: "Hangup Call"
+description: "Terminate an active call and trigger a CALL_TERMINATE webhook with final metrics."
+---
+
+Terminate an in‑progress call using the `callId` returned from initiation.
+
+## Endpoint
+```
+POST <Snippet name="dialer-base-url" />/hangup
+Content-Type: application/json
+```
+
+## Request Body
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| callId | string | Yes | The unique identifier obtained from Initiate Call. |
+| reason | string | No | Free-form text note / reason for analytics. |
+
+```json
+{
+  "callId": "6fa98f44-14fa-4a26-87c7-481c76f1602a",
+  "reason": "user-request"
+}
+```
+
+## Example cURL
+```bash
+curl --location '<Snippet name="dialer-base-url" />/hangup' \
+--header 'Content-Type: application/json' \
+--data '{
+  "callId": "6fa98f44-14fa-4a26-87c7-481c76f1602a",
+  "reason": "--"
+}'
+```
+
+## Success Response
+```json
+{
+  "status": 200,
+  "success": true,
+  "data": {},
+  "message": "Call hangup done"
+}
+```
+
+## Failure Response (Generic)
+```json
+{
+  "status": 500,
+  "success": false,
+  "data": {},
+  "message": "Something went wrong!"
+}
+```
+
+## Resulting Webhook
+Expect a `CALL_TERMINATE` event containing duration metrics and (if available) the `recordingURL`.
+
+## Related
+- <Link href="/dialer/api/initiate-call">Initiate Call</Link>
+- <Link href="/dialer/webhooks">Webhooks</Link>

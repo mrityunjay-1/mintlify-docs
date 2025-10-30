@@ -1,0 +1,77 @@
+---
+title: Get All Phone Numbers
+---
+
+# Get All Phone Numbers
+
+Retrieve a paginated list of all phone numbers in the system.
+
+**Method:** `GET`
+
+**Endpoint:** `/phoneNumbers`
+
+**Query Parameters:**
+- `skip` (default: 50): Number of records to skip (for pagination)
+- `limit` (default: 50): Maximum number of phone number records to return
+
+## Example Request
+
+```http
+GET {{server_url}}/phoneNumbers?skip=50&limit=50
+```
+
+## cURL Example
+
+```bash
+curl -X GET "{{server_url}}/phoneNumbers?skip=50&limit=50"
+```
+
+## Node.js Example
+
+```js
+const fetch = require('node-fetch');
+fetch("{{server_url}}/phoneNumbers?skip=50&limit=50")
+    .then(res => res.json())
+    .then(data => console.log(data));
+```
+
+## Python Example
+
+```python
+import requests
+response = requests.get("{{server_url}}/phoneNumbers", params={"skip": 50, "limit": 50})
+print(response.json())
+```
+
+## Example Response
+
+```json
+{
+    "status": 200,
+    "success": true,
+    "data": {
+        "phoneNumbers": [
+            {
+                "_id": "68e9617418733892287ed27f",
+                "phoneNumber": "917971726699",
+                "providerName": "cloudconnect",
+                "providerPhoneNumber": "07971726699",
+                "sipEndpointNameForAsterisk": "cloudconnect-ahmedabad",
+                "sipDriver": "PJSIP",
+                "createdAt": "2025-10-10T19:41:40.946Z",
+                "updatedAt": "2025-10-10T19:41:40.946Z",
+                "__v": 0
+            }
+        ],
+        "totalCount": 1450,
+        "currentCount": 50,
+        "skip": 50,
+        "limit": 50
+    },
+    "message": "Phone Numbers Fetched"
+}
+```
+
+---
+
+> Adjust `skip` and `limit` as needed for pagination.

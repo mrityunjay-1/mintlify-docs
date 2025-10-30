@@ -1,0 +1,65 @@
+---
+title: Get Applications
+---
+
+# Get Applications
+
+Retrieve a paginated list of application records.
+
+**Method:** `GET`
+
+**Endpoint:** `/applications`
+
+**Query Parameters:**
+- `skip` (default: 50): Number of records to skip (for pagination)
+- `limit` (default: 50): Maximum number of application records to return
+
+## Example Request
+
+```http
+GET {{server_url}}/applications?skip=50&limit=50
+```
+
+## cURL Example
+
+```bash
+curl -X GET "{{server_url}}/applications?skip=50&limit=50"
+```
+
+## Node.js Example
+
+```js
+const fetch = require('node-fetch');
+fetch("{{server_url}}/applications?skip=50&limit=50")
+    .then(res => res.json())
+    .then(data => console.log(data));
+```
+
+## Python Example
+
+```python
+import requests
+response = requests.get("{{server_url}}/applications", params={"skip": 50, "limit": 50})
+print(response.json())
+```
+
+## Example Response
+
+```json
+{
+    "status": 200,
+    "success": true,
+    "data": {
+        "applications": [],
+        "totalCount": 0,
+        "currentCount": 0,
+        "skip": 50,
+        "limit": 50
+    },
+    "message": "Phone Numbers Fetched"
+}
+```
+
+---
+
+> Adjust `skip` and `limit` as needed for pagination.

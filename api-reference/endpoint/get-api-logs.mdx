@@ -1,0 +1,96 @@
+---
+title: Get API Logs
+---
+
+# Get API Logs
+
+Fetch detailed logs for a specific API call by callId.
+
+**Method:** `GET`
+
+**Endpoint:** `/apiLogs`
+
+**Query Parameters:**
+- `callId`: Unique identifier for the API call
+
+## Example Request
+
+```http
+GET {{server_url}}/apiLogs?callId=845411f1-bc9e-4e01-865e-9ba04c8b3882
+```
+
+## cURL Example
+
+```bash
+curl -X GET "{{server_url}}/apiLogs?callId=845411f1-bc9e-4e01-865e-9ba04c8b3882"
+```
+
+## Node.js Example
+
+```js
+const fetch = require('node-fetch');
+fetch("{{server_url}}/apiLogs?callId=845411f1-bc9e-4e01-865e-9ba04c8b3882")
+    .then(res => res.json())
+    .then(data => console.log(data));
+```
+
+## Python Example
+
+```python
+import requests
+response = requests.get("{{server_url}}/apiLogs", params={"callId": "845411f1-bc9e-4e01-865e-9ba04c8b3882"})
+print(response.json())
+```
+
+## Example Response
+
+```json
+{
+    "status": 200,
+    "success": true,
+    "data": [
+        {
+            "_id": "68fb1d0297b642de3a4214fb",
+            "callId": "a65ae3b8-fe3a-4a70-b27d-560764157989",
+            "originateChannelId": "1761287426.20950",
+            "request": {
+                "url": "/initiateCall",
+                "body": {
+                    "userPhoneNumber": "7011705732",
+                    "botPhoneNumber": "918071295333",
+                    "websocketUrlForMediaStream": "wss://pipecat-poc-ai.oriserve.com/media_url",
+                    "webhookUrlForCallEvents": "https://pipecat-poc-ai.oriserve.com/call_event",
+                    "maxCallDuration": 900
+                }
+            },
+            "response": {
+                "status": 200,
+                "success": true,
+                "data": {
+                    "callId": "a65ae3b8-fe3a-4a70-b27d-560764157989"
+                },
+                "message": "Call Initiated",
+                "phoneNumberDetails": {
+                    "_id": "68e96088c80017382188a20c",
+                    "phoneNumber": "918071295333",
+                    "providerName": "cloudconnect",
+                    "providerPhoneNumber": "08071295333",
+                    "sipEndpointNameForAsterisk": "cloudconnect-banglore",
+                    "sipDriver": "PJSIP",
+                    "createdAt": "2025-10-10T19:37:44.232Z",
+                    "updatedAt": "2025-10-10T19:37:44.232Z",
+                    "__v": 0
+                }
+            },
+            "createdAt": "2025-10-24T06:30:26.930Z",
+            "updatedAt": "2025-10-24T06:30:26.930Z",
+            "__v": 0
+        }
+    ],
+    "message": "API logs fetched."
+}
+```
+
+---
+
+> Use the `callId` parameter to fetch logs for a specific API call.

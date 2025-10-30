@@ -26,6 +26,22 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/index",
+              "api-reference/endpoint/get-sessions",
+              "api-reference/endpoint/get-session",
+              "api-reference/endpoint/get-api-logs",
+              "api-reference/endpoint/get-all-phone-numbers",
+              "api-reference/endpoint/get-applications"
+            ]
+          }
+        ]
       }
     ],
     "global": {

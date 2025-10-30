@@ -1,0 +1,76 @@
+---
+title: Get Session
+---
+
+# Get Session
+
+Retrieve details for a specific session by callId.
+
+**Method:** `GET`
+
+**Endpoint:** `/session`
+
+**Query Parameters:**
+- `callId`: Unique identifier for the session
+
+## Example Request
+
+```http
+GET {{server_url}}/session?callId=62575582-240f-46e7-83b9-cab19c192fd8
+```
+
+## cURL Example
+
+```bash
+curl -X GET "{{server_url}}/session?callId=62575582-240f-46e7-83b9-cab19c192fd8"
+```
+
+## Node.js Example
+
+```js
+const fetch = require('node-fetch');
+fetch("{{server_url}}/session?callId=62575582-240f-46e7-83b9-cab19c192fd8")
+    .then(res => res.json())
+    .then(data => console.log(data));
+```
+
+## Python Example
+
+```python
+import requests
+response = requests.get("{{server_url}}/session", params={"callId": "62575582-240f-46e7-83b9-cab19c192fd8"})
+print(response.json())
+```
+
+## Example Response
+
+```json
+{
+    "status": 200,
+    "success": true,
+    "data": {
+        "_id": "68fb1d1d583f0040ba33a5b0",
+        "callId": "a65ae3b8-fe3a-4a70-b27d-560764157989",
+        "__v": 0,
+        "botPhoneNumber": "918071295333",
+        "callDuration": 22,
+        "callEndTime": "2025-10-24T06:30:52.951Z",
+        "callHangupDescription": "",
+        "callHangupSource": "user",
+        "callRecordingUrl": "https://ori-dialer-resources.s3.ap-south-1.amazonaws.com/call_recordings/ba975f86-56c1-4dcf-b4cf-090c7396f5b9.wav",
+        "callRingingDuration": 4.71,
+        "callRingingTime": "2025-10-24T06:30:26.929Z",
+        "callStartTime": "2025-10-24T06:30:31.638Z",
+        "callStatus": "COMPLETED",
+        "callingDirection": "OUTBOUND",
+        "createdAt": "2025-10-24T06:30:53.029Z",
+        "updatedAt": "2025-10-24T06:30:53.029Z",
+        "userPhoneNumber": "7011705732"
+    },
+    "message": "Session Fetched"
+}
+```
+
+---
+
+> Use the `callId` parameter to fetch a specific session.
